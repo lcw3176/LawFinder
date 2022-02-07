@@ -1,0 +1,16 @@
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\bin\Debug\LawFinders.exe.config
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\bin\Debug\LawFinders.exe
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\bin\Debug\LawFinders.pdb
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.csproj.AssemblyReference.cache
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.csproj.SuggestedBindingRedirects.cache
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\MainWindow.g.cs
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\App.g.cs
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders_MarkupCompile.cache
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders_MarkupCompile.lref
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\MainWindow.baml
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.g.resources
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.Properties.Resources.resources
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.csproj.GenerateResource.cache
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.csproj.CoreCompileInputs.cache
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.exe
+C:\Users\THE-LEE\Desktop\LawFinders\LawFinders\obj\Debug\LawFinders.pdb
