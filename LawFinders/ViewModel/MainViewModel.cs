@@ -1,6 +1,8 @@
 ﻿using LawFinders.Command;
+using LawFinders.Model;
 using LawFinders.Service;
 using System;
+using System.Collections.Generic;
 using System.Text;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -12,6 +14,7 @@ namespace LawFinders.ViewModel
         private WebBrowser browser;
         private bool isLoaded = false;
         private readonly HtmlParseService htmlParseService = new HtmlParseService();
+        private List<Laws> lawList;
 
         public ICommand ExtractCommand { get; set; }
 
@@ -41,7 +44,29 @@ namespace LawFinders.ViewModel
         /// <param name="obj"></param>
         private void ExtractExecuteMethod(object obj)
         {
+            if(lawList.Count != 0)
+            {
+                // 테스트
+                foreach(Laws law in lawList)
+                {
+                    foreach(var i in law.Data.Keys)
+                    {
+                        if(i == "jo")
+                        {
+                            string item = law.Data[i];
 
+                            foreach (HtmlElement k in browser.Document.GetElementsByTagName("label"))
+                            {                                
+                                if (!string.IsNullOrEmpty(k.InnerText) && k.InnerText.Split('(')[0] == item)
+                                {
+                                    TargetLawText += "\n";
+                                    TargetLawText += item;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
 
 
@@ -73,14 +98,14 @@ namespace LawFinders.ViewModel
                 sb.Append(" ");
                 sb.Append(elem.InnerText.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)[0]);
 
-                sb.Append(htmlParseService.GetChildType(elem.GetAttribute("className")));
+                sb.Append(htmlParseService.GetChildTypeFromClassName(elem.GetAttribute("className")));
                 sb.Append(" => ");
 
-                foreach (var i in htmlParseService.GetRelatedLawsFromInnerText(elem.InnerText))
+                lawList = htmlParseService.GetRelatedLawsFromInnerText(elem.InnerText);
+                foreach (var i in lawList)
                 {
-                    // 여기 수정
-                    sb.Append(i.type[0]);
-                    sb.Append(",");
+                    sb.Append(i.GetFullData());
+                    sb.Append(", ");
                 }
 
                 TargetLawText = sb.ToString();
