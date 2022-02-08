@@ -25,7 +25,7 @@ namespace LawFinders.Service
             return "";
         }
 
-        public string GetChildType(string className)
+        public string GetChildTypeFromClassName(string className)
         {
             switch (className)
             {
@@ -46,43 +46,63 @@ namespace LawFinders.Service
         {
             List<Laws> lawList = new List<Laws>();
 
-            string pattern = @"제([0-9]*[제조항호목])(제[0-9]*[제조항호목])*(의[0-9]*)*";
+            string pattern = @"제([0-9]*[제조항호목])(제[0-9]*[제조항호목])*(의[0-9]*)*(제[0-9]*[제조항호목])*";
             Regex regex = new Regex(pattern);
 
-            string numberPattern = @"([0-9])*";
-            Regex numberRegex = new Regex(numberPattern);
+            string joPattern = @"제[0-9]*[조의]+[0-9]*";
+            Regex joRegex = new Regex(joPattern);
 
-            string typePattern = @"([조항호목])*";
-            Regex typeRegex = new Regex(typePattern);
+            string hangPattern = @"제[0-9]*[항]+";
+            Regex hangRegex = new Regex(hangPattern);
+
+            string hoPattern = @"제[0-9]*[호]+";
+            Regex hoRegex = new Regex(hoPattern);
+
+            string mokPattern = @"제[0-9]*[목]+";
+            Regex mokRegex = new Regex(mokPattern);
 
             foreach (Match i in regex.Matches(text))
             {
-                Laws laws = new Laws();
 
                 if (string.IsNullOrEmpty(i.Value))
                 {
                     continue;
                 }
 
-                foreach(Match j in numberRegex.Matches(i.Value))
-                {
-                    if (string.IsNullOrEmpty(j.Value))
-                    {
-                        continue;
-                    }
+                Laws laws = new Laws();
 
-                    laws.number.Add(int.Parse(j.Value));
+                foreach(Match j in joRegex.Matches(i.Value))
+                {
+                    if (!string.IsNullOrEmpty(j.Value))
+                    {
+                        laws.Data.Add("jo", j.Value);
+                    }
                 }
 
-                foreach(Match j in typeRegex.Matches(i.Value))
+                foreach (Match j in hangRegex.Matches(i.Value))
                 {
-                    if (string.IsNullOrEmpty(j.Value))
+                    if (!string.IsNullOrEmpty(j.Value))
                     {
-                        continue;
+                        laws.Data.Add("hang", j.Value);
                     }
+                }
 
 
-                    laws.type.Add(j.Value);
+                foreach (Match j in hoRegex.Matches(i.Value))
+                {
+                    if (!string.IsNullOrEmpty(j.Value))
+                    {
+                        laws.Data.Add("ho", j.Value);
+                    }
+                }
+
+
+                foreach (Match j in mokRegex.Matches(i.Value))
+                {
+                    if (!string.IsNullOrEmpty(j.Value))
+                    {
+                        laws.Data.Add("mok", j.Value);
+                    }
                 }
 
                 lawList.Add(laws);
