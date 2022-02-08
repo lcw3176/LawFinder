@@ -1,18 +1,30 @@
 ﻿using LawFinders.Command;
 using LawFinders.Service;
 using System;
+using System.Text;
 using System.Windows.Forms;
 using System.Windows.Input;
 
 namespace LawFinders.ViewModel
 {
-    public class MainViewModel
+    public class MainViewModel : BaseViewModel
     {
         private WebBrowser browser;
         private bool isLoaded = false;
-        private readonly ExtractService extractService = new ExtractService();
+        private readonly HtmlParseService htmlParseService = new HtmlParseService();
 
         public ICommand ExtractCommand { get; set; }
+
+        private string targetLawText;
+        public string TargetLawText
+        {
+            get { return targetLawText; }
+            set
+            {
+                targetLawText = value;
+                OnPropertyChanged("TargetLawText");
+            }
+        }
 
         public MainViewModel(WebBrowser browser)
         {
@@ -48,23 +60,32 @@ namespace LawFinders.ViewModel
             }
 
             isLoaded = true;
-            
         }
 
         private void Document_Click(object sender, HtmlElementEventArgs e)
         {
             HtmlElement elem = browser.Document.GetElementFromPoint(e.ClientMousePosition);
+            StringBuilder sb = new StringBuilder();
 
-            if(elem != null && elem.InnerText != null)
+            if (elem != null && elem.Parent != null && !string.IsNullOrEmpty(elem.InnerText))
             {
-                foreach(var i in extractService.GetRelatedLaws(elem.InnerText))
+                sb.Append(htmlParseService.GetTitle(elem));
+                sb.Append(" ");
+                sb.Append(elem.InnerText.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)[0]);
+
+                sb.Append(htmlParseService.GetChildType(elem.GetAttribute("className")));
+                sb.Append(" => ");
+
+                foreach (var i in htmlParseService.GetRelatedLawsFromInnerText(elem.InnerText))
                 {
-                    Console.WriteLine(i.Jo + i.Hang + i.Ho);
-
+                    // 여기 수정
+                    sb.Append(i.type[0]);
+                    sb.Append(",");
                 }
-                
-            }
-        }
 
+                TargetLawText = sb.ToString();
+            }
+
+        }
     }
 }
