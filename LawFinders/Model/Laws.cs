@@ -1,9 +1,10 @@
-﻿namespace LawFinders.Model
+﻿using System.Collections.Generic;
+
+namespace LawFinders.Model
 {
     internal class Laws
     {
-        public string Jo { get; set; }
-        public string Hang { get; set; }
-        public string Ho { get; set; }
+        public List<int> number { get; set; } = new List<int>();
+        public List<string> type { get; set; } = new List<string>();
     }
 }
