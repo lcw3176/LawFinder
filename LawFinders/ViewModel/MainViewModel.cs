@@ -3,6 +3,7 @@ using LawFinders.Model;
 using LawFinders.Service;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using System.Windows.Input;
@@ -15,6 +16,7 @@ namespace LawFinders.ViewModel
         private bool isLoaded = false;
         private readonly HtmlParseService htmlParseService = new HtmlParseService();
         private List<Laws> lawList;
+        private string nowTitle;
 
         public ICommand ExtractCommand { get; set; }
 
@@ -46,21 +48,167 @@ namespace LawFinders.ViewModel
         {
             if(lawList.Count != 0)
             {
-                // 테스트
-                foreach(Laws law in lawList)
-                {
-                    foreach(var i in law.Data.Keys)
-                    {
-                        if(i == "jo")
-                        {
-                            string item = law.Data[i];
+                test(lawList, nowTitle);
+                File.WriteAllText(@"C:\Users\THE-LEE\Desktop\data.txt", TargetLawText);
+            }
+        }
 
-                            foreach (HtmlElement k in browser.Document.GetElementsByTagName("label"))
-                            {                                
-                                if (!string.IsNullOrEmpty(k.InnerText) && k.InnerText.Split('(')[0] == item)
+        private void test(List<Laws> data, string executejoName)
+        {
+            // 테스트
+            foreach (Laws law in data)
+            {
+                if (law.Data.ContainsKey("jo") && executejoName != law.Data["jo"])
+                {
+                    foreach (HtmlElement i in browser.Document.GetElementsByTagName("label"))
+                    {
+                        if (string.IsNullOrEmpty(i.InnerText))
+                        {
+                            continue;
+                        }
+
+                        string targetJo = i.InnerText.Split('(')[0];
+                        
+
+                        if (targetJo == law.Data["jo"])
+                        {
+                            TargetLawText += "\n\n\n";
+                            TargetLawText += targetJo;
+                            TargetLawText += "\n";
+
+                            int size = law.TypeQueue.Count;
+                            HtmlElement parent = i.Parent.Parent.Parent;
+                            int beforeIndex = -1;
+
+                            if(size == 0)
+                            {
+                                foreach (HtmlElement child in parent.Children)
+                                {
+                                    if (!string.IsNullOrEmpty(child.InnerText))
+                                    {
+                                        TargetLawText += "\n";
+                                        TargetLawText += child.InnerText;
+                                        List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText);
+                                        string tempTitle = htmlParseService.GetTitle(child);
+                                        if (temp.Count != 0)
+                                        {
+                                            test(temp, tempTitle);
+                                        }
+
+                                    }
+                                }
+
+                                break;
+                            }
+
+                            for (int k = 0; k < size; k++)
+                            {
+                                string nowType = law.TypeQueue.Dequeue();
+                                int nowNumb = law.NumQueue.Dequeue();
+                                int index = 1;
+
+                                if(nowType == "hang")
+                                {
+                                    index++;
+                                }
+
+                                string findClass = htmlParseService.GetClassTypeToEn(nowType);
+                                
+                                if(nowNumb == 1 && nowType == "hang")
                                 {
                                     TargetLawText += "\n";
-                                    TargetLawText += item;
+                                    TargetLawText += parent.Children[0].InnerText;
+                                    continue;
+                                }
+                                
+
+                                foreach (HtmlElement child in parent.Children)
+                                {
+                                    if(child.GetAttribute("className") == findClass)
+                                    {
+                                        if(index == nowNumb && index >= beforeIndex)
+                                        {
+                                            TargetLawText += "\n";
+                                            TargetLawText += child.InnerText;
+                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText);
+                                            string tempTitle = htmlParseService.GetTitle(child);
+                                            if (temp.Count != 0)
+                                            {
+                                                test(temp, tempTitle);
+                                            }
+
+                                            beforeIndex = index;
+                                            break;
+                                        }
+
+                                        index++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                if (!law.Data.ContainsKey("jo"))
+                {
+                    foreach (HtmlElement i in browser.Document.GetElementsByTagName("label"))
+                    {
+                        if (string.IsNullOrEmpty(i.InnerText))
+                        {
+                            continue;
+                        }
+
+                        string targetJo = i.InnerText.Split('(')[0];
+
+
+                        if (targetJo == executejoName)
+                        {
+                            int size = law.TypeQueue.Count;
+                            HtmlElement parent = i.Parent.Parent.Parent;
+                            int beforeIndex = -1;
+
+                            for (int k = 0; k < size; k++)
+                            {
+                                string nowType = law.TypeQueue.Dequeue();
+                                int nowNumb = law.NumQueue.Dequeue();
+                                int index = 1;
+
+                                if (nowType == "hang")
+                                {
+                                    index++;
+                                }
+
+                                string findClass = htmlParseService.GetClassTypeToEn(nowType);
+
+                                if (nowNumb == 1 && nowType == "hang")
+                                {
+                                    TargetLawText += "\n";
+                                    TargetLawText += parent.Children[0].InnerText;
+                                    continue;
+                                }
+
+
+                                foreach (HtmlElement child in parent.Children)
+                                {
+                                    if (child.GetAttribute("className") == findClass)
+                                    {
+                                        if (index == nowNumb && index >= beforeIndex)
+                                        {
+                                            TargetLawText += "\n";
+                                            TargetLawText += child.InnerText;
+                                            beforeIndex = index;
+
+                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText);
+                                            string tempTitle = htmlParseService.GetTitle(child);
+                                            if (temp.Count != 0)
+                                            {
+                                                test(temp, tempTitle);
+                                            }
+                                            break;
+                                        }
+
+                                        index++;
+                                    }
                                 }
                             }
                         }
@@ -94,11 +242,12 @@ namespace LawFinders.ViewModel
 
             if (elem != null && elem.Parent != null && !string.IsNullOrEmpty(elem.InnerText))
             {
-                sb.Append(htmlParseService.GetTitle(elem));
+                nowTitle = htmlParseService.GetTitle(elem);
+                sb.Append(nowTitle);
                 sb.Append(" ");
                 sb.Append(elem.InnerText.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)[0]);
 
-                sb.Append(htmlParseService.GetChildTypeFromClassName(elem.GetAttribute("className")));
+                sb.Append(htmlParseService.GetLawTypeToKorean(elem.GetAttribute("className")));
                 sb.Append(" => ");
 
                 lawList = htmlParseService.GetRelatedLawsFromInnerText(elem.InnerText);
