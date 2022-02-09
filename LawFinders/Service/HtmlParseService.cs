@@ -25,7 +25,7 @@ namespace LawFinders.Service
             return "";
         }
 
-        public string GetChildTypeFromClassName(string className)
+        public string GetLawTypeToKorean(string className)
         {
             switch (className)
             {
@@ -35,6 +35,38 @@ namespace LawFinders.Service
                     return "호";
                 case "pty1_de3":
                     return "목";
+                default:
+                    return string.Empty;
+            }
+
+        }
+
+        public string GetLawTypeToEn(string className)
+        {
+            switch (className)
+            {
+                case "pty1_de2_1":
+                    return "hang";
+                case "pty1_de2h":
+                    return "ho";
+                case "pty1_de3":
+                    return "mok";
+                default:
+                    return string.Empty;
+            }
+
+        }
+
+        public string GetClassTypeToEn(string lawType)
+        {
+            switch (lawType)
+            {
+                case "hang":
+                    return "pty1_de2_1";
+                case "ho":
+                    return "pty1_de2h";
+                case "mok":
+                    return "pty1_de3";
                 default:
                     return string.Empty;
             }
@@ -84,6 +116,8 @@ namespace LawFinders.Service
                     if (!string.IsNullOrEmpty(j.Value))
                     {
                         laws.Data.Add("hang", j.Value);
+                        laws.NumQueue.Enqueue(int.Parse(Regex.Replace(j.Value, @"[^0-9]", "")));
+                        laws.TypeQueue.Enqueue("hang");
                     }
                 }
 
@@ -93,6 +127,8 @@ namespace LawFinders.Service
                     if (!string.IsNullOrEmpty(j.Value))
                     {
                         laws.Data.Add("ho", j.Value);
+                        laws.NumQueue.Enqueue(int.Parse(Regex.Replace(j.Value, @"[^0-9]", "")));
+                        laws.TypeQueue.Enqueue("ho");
                     }
                 }
 
@@ -102,6 +138,8 @@ namespace LawFinders.Service
                     if (!string.IsNullOrEmpty(j.Value))
                     {
                         laws.Data.Add("mok", j.Value);
+                        laws.NumQueue.Enqueue(int.Parse(Regex.Replace(j.Value, @"[^0-9]", "")));
+                        laws.TypeQueue.Enqueue("mok");
                     }
                 }
 
