@@ -6,6 +6,9 @@ namespace LawFinders.Model
     public class Laws
     {
 
+        public Queue<int> NumQueue { get; set; } = new Queue<int>();
+        public Queue<string> TypeQueue { get; set; } = new Queue<string>();
+
         public Dictionary<string, string> Data { get; set; } = new Dictionary<string, string>();
 
 
