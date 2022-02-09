@@ -48,17 +48,35 @@ namespace LawFinders.ViewModel
         {
             if(lawList.Count != 0)
             {
-                test(lawList, nowTitle);
-                File.WriteAllText(@"C:\Users\THE-LEE\Desktop\data.txt", TargetLawText);
+                test(lawList, nowTitle, new List<Laws>());
+                File.WriteAllText("data.txt", TargetLawText);
             }
         }
 
-        private void test(List<Laws> data, string executejoName)
+        private void test(List<Laws> data, string executejoName, List<Laws> done)
         {
+
             // 테스트
             foreach (Laws law in data)
             {
-                if (law.Data.ContainsKey("jo") && executejoName != law.Data["jo"])
+                bool isWrong = false;
+
+                foreach(var vaildation in done)
+                {
+                    if (vaildation.GetFullData() == law.GetFullData())
+                    {
+                        isWrong = true;
+                        break;
+                    }
+                }
+
+                if (isWrong)
+                {
+                    continue;
+                }
+                
+
+                if (law.Data.ContainsKey("jo"))
                 {
                     foreach (HtmlElement i in browser.Document.GetElementsByTagName("label"))
                     {
@@ -67,7 +85,7 @@ namespace LawFinders.ViewModel
                             continue;
                         }
 
-                        string targetJo = i.InnerText.Split('(')[0];
+                        string targetJo = htmlParseService.GetTitle(i);
                         
 
                         if (targetJo == law.Data["jo"])
@@ -88,11 +106,24 @@ namespace LawFinders.ViewModel
                                     {
                                         TargetLawText += "\n";
                                         TargetLawText += child.InnerText;
-                                        List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText);
-                                        string tempTitle = htmlParseService.GetTitle(child);
-                                        if (temp.Count != 0)
+
+                                        List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText, targetJo);
+                                        bool isPass = true;
+
+                                        foreach (var check in temp)
                                         {
-                                            test(temp, tempTitle);
+                                            if (check.GetFullData() == law.GetFullData())
+                                            {
+                                                isPass = false;
+                                                break;
+                                            }
+                                        }
+
+
+                                        if (temp.Count != 0 && isPass)
+                                        {
+                                            done.Add(law);
+                                            test(temp, targetJo, done);
                                         }
 
                                     }
@@ -130,11 +161,24 @@ namespace LawFinders.ViewModel
                                         {
                                             TargetLawText += "\n";
                                             TargetLawText += child.InnerText;
-                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText);
-                                            string tempTitle = htmlParseService.GetTitle(child);
-                                            if (temp.Count != 0)
+
+                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText, targetJo);
+                                            bool isPass = true;
+
+                                            foreach (var check in temp)
                                             {
-                                                test(temp, tempTitle);
+                                                if (check.GetFullData() == law.GetFullData())
+                                                {
+                                                    isPass = false;
+                                                    break;
+                                                }
+                                            }
+
+
+                                            if (temp.Count != 0 && isPass)
+                                            {
+                                                done.Add(law);
+                                                test(temp, targetJo, done);
                                             }
 
                                             beforeIndex = index;
@@ -158,7 +202,7 @@ namespace LawFinders.ViewModel
                             continue;
                         }
 
-                        string targetJo = i.InnerText.Split('(')[0];
+                        string targetJo = htmlParseService.GetTitle(i);
 
 
                         if (targetJo == executejoName)
@@ -198,11 +242,22 @@ namespace LawFinders.ViewModel
                                             TargetLawText += child.InnerText;
                                             beforeIndex = index;
 
-                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText);
-                                            string tempTitle = htmlParseService.GetTitle(child);
-                                            if (temp.Count != 0)
+                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText, targetJo);
+                                            bool isPass = true;
+
+                                            foreach(var check in temp)
                                             {
-                                                test(temp, tempTitle);
+                                                if(check.GetFullData() == law.GetFullData())
+                                                {
+                                                    isPass = false;
+                                                    break;
+                                                }
+                                            }
+
+                                            if (temp.Count != 0 && isPass)
+                                            {
+                                                done.Add(law);
+                                                test(temp, targetJo, done);
                                             }
                                             break;
                                         }
@@ -250,7 +305,8 @@ namespace LawFinders.ViewModel
                 sb.Append(htmlParseService.GetLawTypeToKorean(elem.GetAttribute("className")));
                 sb.Append(" => ");
 
-                lawList = htmlParseService.GetRelatedLawsFromInnerText(elem.InnerText);
+                lawList = htmlParseService.GetRelatedLawsFromInnerText(elem.InnerText, nowTitle);
+
                 foreach (var i in lawList)
                 {
                     sb.Append(i.GetFullData());

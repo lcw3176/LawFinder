@@ -1,4 +1,5 @@
 ﻿using LawFinders.Model;
+using System;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
@@ -74,7 +75,7 @@ namespace LawFinders.Service
         }
 
 
-        public List<Laws> GetRelatedLawsFromInnerText(string text)
+        public List<Laws> GetRelatedLawsFromInnerText(string text, string parentName)
         {
             List<Laws> lawList = new List<Laws>();
 
@@ -105,7 +106,7 @@ namespace LawFinders.Service
 
                 foreach(Match j in joRegex.Matches(i.Value))
                 {
-                    if (!string.IsNullOrEmpty(j.Value))
+                    if (!string.IsNullOrEmpty(j.Value) && j.Value != parentName)
                     {
                         laws.Data.Add("jo", j.Value);
                     }
@@ -143,8 +144,14 @@ namespace LawFinders.Service
                     }
                 }
 
-                lawList.Add(laws);
+                if (!string.IsNullOrEmpty(laws.GetFullData()))
+                {
+                    lawList.Add(laws);
+                }
+                
             }
+
+
 
             return lawList;
 
