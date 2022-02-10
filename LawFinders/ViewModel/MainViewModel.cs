@@ -59,18 +59,7 @@ namespace LawFinders.ViewModel
             // 테스트
             foreach (Laws law in data)
             {
-                bool isWrong = false;
-
-                foreach(var vaildation in done)
-                {
-                    if (vaildation.GetFullData() == law.GetFullData())
-                    {
-                        isWrong = true;
-                        break;
-                    }
-                }
-
-                if (isWrong)
+                if(htmlParseService.IsHaveAnySameData(law, done))
                 {
                     continue;
                 }
@@ -78,16 +67,10 @@ namespace LawFinders.ViewModel
 
                 if (law.Data.ContainsKey("jo"))
                 {
-                    foreach (HtmlElement i in browser.Document.GetElementsByTagName("label"))
+                    foreach (HtmlElement i in htmlParseService.FindAllTitleDocument(browser))
                     {
-                        if (string.IsNullOrEmpty(i.InnerText))
-                        {
-                            continue;
-                        }
-
                         string targetJo = htmlParseService.GetTitle(i);
                         
-
                         if (targetJo == law.Data["jo"])
                         {
                             TargetLawText += "\n\n\n";
@@ -96,9 +79,8 @@ namespace LawFinders.ViewModel
 
                             int size = law.TypeQueue.Count;
                             HtmlElement parent = i.Parent.Parent.Parent;
-                            int beforeIndex = -1;
 
-                            if(size == 0)
+                            if (size == 0)
                             {
                                 foreach (HtmlElement child in parent.Children)
                                 {
@@ -108,19 +90,8 @@ namespace LawFinders.ViewModel
                                         TargetLawText += child.InnerText;
 
                                         List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText, targetJo);
-                                        bool isPass = true;
 
-                                        foreach (var check in temp)
-                                        {
-                                            if (check.GetFullData() == law.GetFullData())
-                                            {
-                                                isPass = false;
-                                                break;
-                                            }
-                                        }
-
-
-                                        if (temp.Count != 0 && isPass)
+                                        if (temp.Count != 0)
                                         {
                                             done.Add(law);
                                             test(temp, targetJo, done);
@@ -132,142 +103,72 @@ namespace LawFinders.ViewModel
                                 break;
                             }
 
-                            for (int k = 0; k < size; k++)
-                            {
-                                string nowType = law.TypeQueue.Dequeue();
-                                int nowNumb = law.NumQueue.Dequeue();
-                                int index = 1;
-
-                                if(nowType == "hang")
-                                {
-                                    index++;
-                                }
-
-                                string findClass = htmlParseService.GetClassTypeToEn(nowType);
-                                
-                                if(nowNumb == 1 && nowType == "hang")
-                                {
-                                    TargetLawText += "\n";
-                                    TargetLawText += parent.Children[0].InnerText;
-                                    continue;
-                                }
-                                
-
-                                foreach (HtmlElement child in parent.Children)
-                                {
-                                    if(child.GetAttribute("className") == findClass)
-                                    {
-                                        if(index == nowNumb && index >= beforeIndex)
-                                        {
-                                            TargetLawText += "\n";
-                                            TargetLawText += child.InnerText;
-
-                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText, targetJo);
-                                            bool isPass = true;
-
-                                            foreach (var check in temp)
-                                            {
-                                                if (check.GetFullData() == law.GetFullData())
-                                                {
-                                                    isPass = false;
-                                                    break;
-                                                }
-                                            }
-
-
-                                            if (temp.Count != 0 && isPass)
-                                            {
-                                                done.Add(law);
-                                                test(temp, targetJo, done);
-                                            }
-
-                                            beforeIndex = index;
-                                            break;
-                                        }
-
-                                        index++;
-                                    }
-                                }
-                            }
+                            good(size, parent, law, targetJo, done);
                         }
                     }
                 }
 
                 if (!law.Data.ContainsKey("jo"))
                 {
-                    foreach (HtmlElement i in browser.Document.GetElementsByTagName("label"))
+                    foreach (HtmlElement i in htmlParseService.FindAllTitleDocument(browser))
                     {
-                        if (string.IsNullOrEmpty(i.InnerText))
-                        {
-                            continue;
-                        }
-
                         string targetJo = htmlParseService.GetTitle(i);
-
-
+                        
                         if (targetJo == executejoName)
                         {
                             int size = law.TypeQueue.Count;
                             HtmlElement parent = i.Parent.Parent.Parent;
-                            int beforeIndex = -1;
-
-                            for (int k = 0; k < size; k++)
-                            {
-                                string nowType = law.TypeQueue.Dequeue();
-                                int nowNumb = law.NumQueue.Dequeue();
-                                int index = 1;
-
-                                if (nowType == "hang")
-                                {
-                                    index++;
-                                }
-
-                                string findClass = htmlParseService.GetClassTypeToEn(nowType);
-
-                                if (nowNumb == 1 && nowType == "hang")
-                                {
-                                    TargetLawText += "\n";
-                                    TargetLawText += parent.Children[0].InnerText;
-                                    continue;
-                                }
-
-
-                                foreach (HtmlElement child in parent.Children)
-                                {
-                                    if (child.GetAttribute("className") == findClass)
-                                    {
-                                        if (index == nowNumb && index >= beforeIndex)
-                                        {
-                                            TargetLawText += "\n";
-                                            TargetLawText += child.InnerText;
-                                            beforeIndex = index;
-
-                                            List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(child.InnerText, targetJo);
-                                            bool isPass = true;
-
-                                            foreach(var check in temp)
-                                            {
-                                                if(check.GetFullData() == law.GetFullData())
-                                                {
-                                                    isPass = false;
-                                                    break;
-                                                }
-                                            }
-
-                                            if (temp.Count != 0 && isPass)
-                                            {
-                                                done.Add(law);
-                                                test(temp, targetJo, done);
-                                            }
-                                            break;
-                                        }
-
-                                        index++;
-                                    }
-                                }
-                            }
+                            good(size, parent, law, targetJo, done);
                         }
                     }
+                }
+            }
+        }
+
+        private void good(int size, HtmlElement parent, Laws law, string targetJo, List<Laws> done)
+        {
+            int beforeIndex = -1;
+
+            for (int k = 0; k < size; k++)
+            {
+                string nowType = law.TypeQueue.Dequeue();
+                int nowNumb = law.NumQueue.Dequeue();
+                int index = 1;
+
+
+                if (nowType == "hang")
+                {
+                    index++;
+                }
+
+                string findClass = htmlParseService.GetClassNameByLawType(nowType);
+
+                if (nowNumb == 1 && nowType == "hang")
+                {
+                    TargetLawText += "\n";
+                    TargetLawText += parent.Children[0].InnerText;
+                    continue;
+                }
+
+                foreach (HtmlElement element in htmlParseService.FindChildrenByClassName(parent, findClass))
+                {
+                    if (index == nowNumb && index >= beforeIndex)
+                    {
+                        TargetLawText += "\n";
+                        TargetLawText += element.InnerText;
+
+                        List<Laws> temp = htmlParseService.GetRelatedLawsFromInnerText(element.InnerText, targetJo);
+
+                        if (temp.Count != 0)
+                        {
+                            done.Add(law);
+                            test(temp, targetJo, done);
+                        }
+                        beforeIndex = index;
+                        break;
+                    }
+
+                    index++;
                 }
             }
         }
@@ -302,7 +203,7 @@ namespace LawFinders.ViewModel
                 sb.Append(" ");
                 sb.Append(elem.InnerText.Split(new string[] { " " }, StringSplitOptions.RemoveEmptyEntries)[0]);
 
-                sb.Append(htmlParseService.GetLawTypeToKorean(elem.GetAttribute("className")));
+                sb.Append(htmlParseService.GetLawTypeByClassName(elem.GetAttribute("className")));
                 sb.Append(" => ");
 
                 lawList = htmlParseService.GetRelatedLawsFromInnerText(elem.InnerText, nowTitle);
