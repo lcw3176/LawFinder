@@ -26,7 +26,98 @@ namespace LawFinders.Service
             return "";
         }
 
-        public string GetLawTypeToKorean(string className)
+        public List<HtmlElement> FindAllTitleDocument(WebBrowser browser)
+        {
+            List<HtmlElement> titles = new List<HtmlElement>();
+
+            foreach (HtmlElement i in browser.Document.GetElementsByTagName("label"))
+            {
+                if (string.IsNullOrEmpty(i.InnerText))
+                {
+                    continue;
+                }
+
+                titles.Add(i);
+
+            }
+
+            return titles;
+        }
+
+        public List<HtmlElement> FindChildrenByClassName(HtmlElement elem, string findClass)
+        {
+            List<HtmlElement> lst = new List<HtmlElement>();
+
+            foreach (HtmlElement child in elem.Children)
+            {
+                if (child.GetAttribute("className") == findClass)
+                {
+                    lst.Add(child);
+                }
+            }
+
+            return lst;
+        }
+
+        public bool IsHaveAnySameData(Laws target, List<Laws> dataLst)
+        {
+            foreach (Laws vaildation in dataLst)
+            {
+                if (vaildation.GetFullData() == target.GetFullData())
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public List<string> FindRelatedLawsTextFromHtml(Laws law, HtmlElement parent)
+        {
+            List<string> textLst = new List<string>();
+
+            int size = law.TypeQueue.Count;
+
+            for (int k = 0; k < size; k++)
+            {
+                string nowType = law.TypeQueue.Dequeue();
+                int nowNumb = law.NumQueue.Dequeue();
+                int index = 1;
+                int beforeIndex = -1;
+
+                if (nowType == "hang")
+                {
+                    index++;
+                }
+
+                string findClass = GetClassNameByLawType(nowType);
+
+                if (nowNumb == 1 && nowType == "hang")
+                {
+                    textLst.Add(parent.Children[0].InnerText);
+                    continue;
+                }
+
+
+                foreach (HtmlElement child in parent.Children)
+                {
+                    if (child.GetAttribute("className") == findClass)
+                    {
+                        if (index == nowNumb && index >= beforeIndex)
+                        {
+                            textLst.Add(child.InnerText);
+                            break;
+                        }
+
+                        beforeIndex = index++;
+                    }
+                }
+            }
+
+            return textLst;
+        }
+
+        public string GetLawTypeByClassName(string className)
         {
             switch (className)
             {
@@ -42,23 +133,7 @@ namespace LawFinders.Service
 
         }
 
-        public string GetLawTypeToEn(string className)
-        {
-            switch (className)
-            {
-                case "pty1_de2_1":
-                    return "hang";
-                case "pty1_de2h":
-                    return "ho";
-                case "pty1_de3":
-                    return "mok";
-                default:
-                    return string.Empty;
-            }
-
-        }
-
-        public string GetClassTypeToEn(string lawType)
+        public string GetClassNameByLawType(string lawType)
         {
             switch (lawType)
             {
